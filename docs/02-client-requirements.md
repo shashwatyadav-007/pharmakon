@@ -1,4 +1,4 @@
-h# 02 — Client Requirements
+# 02 — Client Requirements
 
 **Document status:** Draft v1.1 — added requirement IDs for traceability, a Non-Functional Requirements section, and six additional open questions
 **Last updated:** 15 September 2026 (Day 1)
