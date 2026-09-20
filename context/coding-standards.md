@@ -1,18 +1,23 @@
-# Context — Coding Standards & Quality Guidelines
+# Context: Coding Standards and Quality Guidelines
+
+---
 
 ## 1. Backend Standards (Python 3.11 + FastAPI + SQLAlchemy)
 
-### Code Style & Format
+### Code Style and Format
+
 - Adhere strictly to **PEP 8**. Use `black` and `isort` formatting.
 - Explicit type annotations are required for all function arguments and return signatures (`def calculate_vat(subtotal: Decimal) -> Decimal:`).
-- Use `Decimal` or `NUMERIC(10,2)` for all monetary calculations (MRP, cost, revenue, VAT, discount). **Never use binary floating-point numbers (`float`) for currency!**
+- Use `Decimal` or `NUMERIC(10,2)` for all monetary calculations (MRP, cost, revenue, VAT, discount). **Never use binary floating-point numbers (`float`) for currency.**
 
-### FastAPI & Pydantic Conventions
+### FastAPI and Pydantic Conventions
+
 - Define explicit request and response Pydantic models for every API endpoint.
 - Use `status.HTTP_400_BAD_REQUEST` for business rule violations with clear error code strings.
 - Use FastAPI Dependency Injection (`Depends()`) for database sessions and authentication.
 
-### SQLAlchemy & Database Invariants
+### SQLAlchemy and Database Invariants
+
 - Use SQLAlchemy 2.0 style queries (`select()`, `execute()`).
 - Always run inventory mutations inside atomic database transactions (`async with session.begin():` or explicit commit/rollback blocks).
 - Always generate a `StockMovementLog` entry when inventory quantity changes.
@@ -21,15 +26,33 @@
 
 ## 2. Frontend Standards (React + TypeScript + Vite)
 
-### Code Style & Format
+### Code Style and Format
+
 - Write strict TypeScript with `noImplicitAny: true`.
 - Functional components with hooks only; avoid legacy class components.
 - Modular component organization: `components/ui/`, `components/pos/`, `components/inventory/`, `pages/`, `services/api.ts`.
 
-### Styling & UI
+### Styling and UI
+
 - Use **Tailwind CSS** for layout, spacing, and styling.
-- Follow a clean, modern medical/healthcare color palette (Primary: Emerald/Teal `#059669`, Dark Neutral: Slate `#0f172a`, Accent: Amber `#f59e0b`).
+- Follow the color palette defined in `context/ui-context.md`: Primary Emerald/Teal `#059669`, Dark Neutral Slate `#0f172a`, Accent Amber `#f59e0b`.
 - Ensure high contrast and touch/barcode scanner friendly focus states on the POS billing screen.
+- **Read [`DESIGN_CONSTRAINTS.md`](../DESIGN_CONSTRAINTS.md) before writing any UI code.** It lists every prohibited visual pattern (no gradients, no pill buttons, no glassmorphism, no Lucide, no emoji icons, no scroll animations, no cursor effects, and more).
+
+### Typography
+
+- Use the system font stack: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`.
+- Do not use Inter, Space Grotesk, or Instrument Serif.
+
+### Icons
+
+- Use Heroicons or Phosphor Icons. Do not default to Lucide.
+- Do not use emoji characters as UI icons.
+
+### Copy and Content
+
+- Write specific, factual text. No vague hero copy, generic buzzwords, or em dashes.
+- Display only real data from the database. If no data exists yet, show "No data yet" instead of fake numbers.
 
 ---
 
@@ -38,3 +61,11 @@
 - **Unit Tests (`pytest`):** Every service method handling pricing, tax, FEFO selection, or stock adjustment must have unit test coverage.
 - **Integration Tests:** Test end-to-end POS sale creation, ensuring inventory decreases and stock movement logs are generated.
 - **Negative Stock Test:** Explicit test verifying that attempting to purchase/sell more stock than available raises a 400 Bad Request error.
+
+---
+
+## 4. Documentation Standards
+
+- No emoji characters in markdown headings or document titles.
+- No em dashes. Use commas, semicolons, colons, or separate sentences.
+- No vague or filler language in documentation. Be specific and concise.
