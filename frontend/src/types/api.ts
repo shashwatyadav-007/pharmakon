@@ -92,6 +92,7 @@ export interface Batch {
   id: string;
   product_id: string;
   product_name: string;
+  unit: string;
   batch_number: string;
   expiry_date: string;
   purchase_cost: string;
@@ -103,6 +104,7 @@ export interface Batch {
 export interface FEFOBatch {
   batch_id: string;
   batch_number: string;
+  unit: string;
   expiry_date: string;
   available_quantity: number;
   purchase_cost: string;

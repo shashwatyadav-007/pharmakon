@@ -31,7 +31,7 @@ describe("LoginPage Component", () => {
     localStorage.clear();
   });
 
-  it("renders login form with default credentials", () => {
+  it("renders empty login form ready for user credentials", () => {
     render(
       <BrowserRouter>
         <AuthProvider>
@@ -40,8 +40,8 @@ describe("LoginPage Component", () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByLabelText(/username/i)).toHaveValue("admin");
-    expect(screen.getByLabelText(/password/i)).toHaveValue("SecurePassword123!");
+    expect(screen.getByLabelText(/username/i)).toHaveValue("");
+    expect(screen.getByLabelText(/password/i)).toHaveValue("");
     expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 
@@ -58,6 +58,9 @@ describe("LoginPage Component", () => {
         </AuthProvider>
       </BrowserRouter>
     );
+
+    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "wronguser" } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "wrongpass" } });
 
     const submitBtn = screen.getByRole("button", { name: /sign in/i });
     fireEvent.click(submitBtn);
@@ -79,6 +82,9 @@ describe("LoginPage Component", () => {
         </AuthProvider>
       </BrowserRouter>
     );
+
+    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "admin" } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "SecurePassword123!" } });
 
     const submitBtn = screen.getByRole("button", { name: /sign in/i });
     fireEvent.click(submitBtn);

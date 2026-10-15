@@ -4,8 +4,8 @@ import { useAuth } from "./AuthContext";
 import { ApiError } from "../../lib/api/client";
 
 export const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("SecurePassword123!");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -105,10 +105,8 @@ export const LoginPage: React.FC = () => {
           </div>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-500 space-y-1">
-          <p className="font-semibold text-slate-600">Operational Credentials (Default):</p>
-          <p>Username: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800">admin</code></p>
-          <p>Password: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800">SecurePassword123!</code></p>
+        <div className="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-500 text-center">
+          <p>Authorized access only. Contact your pharmacy administrator if you require account credentials.</p>
         </div>
       </div>
     </div>

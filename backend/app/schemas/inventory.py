@@ -10,6 +10,7 @@ class BatchResponse(BaseModel):
     id: UUID
     product_id: UUID
     product_name: str
+    unit: str = "Piece"
     batch_number: str
     expiry_date: date
     purchase_cost: Decimal
@@ -20,6 +21,7 @@ class BatchResponse(BaseModel):
 class FEFOBatchResponse(BaseModel):
     batch_id: UUID
     batch_number: str
+    unit: str = "Piece"
     expiry_date: date
     available_quantity: int
     purchase_cost: Decimal

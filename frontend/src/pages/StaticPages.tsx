@@ -34,7 +34,7 @@ export const PrivacyPolicyPage: React.FC = () => {
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-slate-900">4. Contact Information</h2>
           <p>
-            For privacy inquiries regarding recorded transaction statements, contact the pharmacy operational administrator directly at Aayushman Pharmacy, Kathmandu, Nepal.
+            For privacy inquiries regarding recorded transaction statements, contact the pharmacy operational administrator directly at Aayushman Pharmacy, Birgunj-8, Link Road, Nepal.
           </p>
         </section>
       </div>

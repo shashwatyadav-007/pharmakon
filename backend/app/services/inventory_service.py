@@ -33,6 +33,7 @@ def get_all_batches(
         b_copy = b.copy()
         product = data_store.products.get(b["product_id"])
         b_copy["product_name"] = product["name"] if product else "Unknown Product"
+        b_copy["unit"] = product.get("unit", "Piece") if product else "Piece"
         filtered.append(b_copy)
 
     total_count = len(filtered)
@@ -67,6 +68,7 @@ def get_fefo_batches(product_id: uuid.UUID) -> dict[str, Any]:
         {
             "batch_id": b["id"],
             "batch_number": b["batch_number"],
+            "unit": product.get("unit", "Piece"),
             "expiry_date": b["expiry_date"],
             "available_quantity": b["quantity"],
             "purchase_cost": b["purchase_cost"],
@@ -208,3 +210,19 @@ def create_stock_adjustment(data: dict[str, Any]) -> dict[str, Any]:
     data_store.stock_movement_logs.append(movement)
 
     return adjustment
+
+
+def validate_batch_uniqueness(product_id: uuid.UUID, batch_number: str, expiry_date: date) -> None:
+    """Enforce UNIQUE(product_id, batch_number, expiry_date) constraint from 08-database-design.md."""
+    for b in data_store.batches.values():
+        if (
+            b.get("product_id") == product_id
+            and b.get("batch_number") == batch_number
+            and b.get("expiry_date") == expiry_date
+        ):
+            raise AppError(
+                code="DUPLICATE_BATCH",
+                message=f"Batch '{batch_number}' with expiry date {expiry_date} already exists for this product.",
+                status_code=400,
+            )
+

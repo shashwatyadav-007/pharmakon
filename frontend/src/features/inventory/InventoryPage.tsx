@@ -275,7 +275,7 @@ export const InventoryPage: React.FC = () => {
                         {formatNPR(b.purchase_cost)}
                       </td>
                       <td className="py-3 px-4 text-center font-bold text-slate-900">
-                        {b.quantity}
+                        {b.quantity} <span className="text-xs font-normal text-slate-500">{b.unit || "unit"}s</span>
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-100 text-emerald-800">
@@ -376,7 +376,7 @@ export const InventoryPage: React.FC = () => {
                           )}
                         </td>
                         <td className="py-3 px-4 text-center font-bold text-slate-900">
-                          {batch.available_quantity} units
+                          {batch.available_quantity} <span className="text-xs font-normal text-slate-500">{batch.unit || "unit"}s</span>
                         </td>
                         <td className="py-3 px-4 text-right font-medium text-slate-800">
                           {formatNPR(batch.purchase_cost)}
