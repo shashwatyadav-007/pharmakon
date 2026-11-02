@@ -92,9 +92,12 @@ export interface Batch {
   id: string;
   product_id: string;
   product_name: string;
+  product_code?: string;
+  category?: string;
   unit: string;
   batch_number: string;
   expiry_date: string;
+  days_until_expiry?: number;
   purchase_cost: string;
   quantity: number;
   is_active: boolean;
@@ -106,6 +109,7 @@ export interface FEFOBatch {
   batch_number: string;
   unit: string;
   expiry_date: string;
+  days_until_expiry?: number;
   available_quantity: number;
   purchase_cost: string;
 }
@@ -113,6 +117,12 @@ export interface FEFOBatch {
 export interface FEFOProductResponseData {
   product_id: string;
   product_name: string;
+  product_code?: string;
+  category?: string;
+  unit?: string;
+  reorder_level?: number;
+  total_stock?: number;
+  mrp?: string;
   fefo_batches: FEFOBatch[];
 }
 
@@ -120,18 +130,25 @@ export interface LowStockAlert {
   product_id: string;
   product_name: string;
   product_code: string;
+  category?: string;
+  unit?: string;
   reorder_level: number;
   current_stock: number;
+  shortfall?: number;
+  urgency?: string;
 }
 
 export interface ExpiryRiskAlert {
   batch_id: string;
   product_id: string;
   product_name: string;
+  product_code?: string;
+  unit?: string;
   batch_number: string;
   expiry_date: string;
   quantity: number;
   days_until_expiry: number;
+  urgency?: string;
 }
 
 export type StockAdjustmentReason = "PHYSICAL_COUNT" | "DAMAGED" | "EXPIRED" | "CORRECTION";
@@ -148,6 +165,21 @@ export interface StockAdjustmentResult {
   id: string;
   product_id: string;
   batch_id: string;
+  previous_quantity: number;
+  new_quantity: number;
+  adjustment_quantity: number;
+  reason: StockAdjustmentReason;
+  notes?: string | null;
+  adjusted_at: string;
+}
+
+export interface StockAdjustmentHistoryItem {
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_code: string;
+  batch_id: string;
+  batch_number: string;
   previous_quantity: number;
   new_quantity: number;
   adjustment_quantity: number;

@@ -1,11 +1,43 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.responses import AppError, success_response
 from app.schemas.auth import LoginData, LoginRequest, UserSummary
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+security = HTTPBearer(auto_error=False)
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> UserSummary:
+    """Validate Bearer access token for operational user.
+    
+    Preserves single-user operational model (ROLE-001) using token issued by /auth/login.
+    """
+    if not credentials or not credentials.credentials:
+        raise AppError(
+            code="UNAUTHORIZED",
+            message="Authentication required. Please provide a valid Bearer token.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    token = credentials.credentials
+    # Validates operational token issued by login endpoint
+    if token == "mock_access_token_pharmakon_admin_2026":
+        return UserSummary(
+            username="admin",
+            role="Pharmacy System User",
+        )
+
+    raise AppError(
+        code="INVALID_TOKEN",
+        message="Invalid or expired access token.",
+        status_code=status.HTTP_401_UNAUTHORIZED,
+    )
 
 
 @router.post(

@@ -60,6 +60,7 @@ All core architectural specifications and business requirements are documented i
 | [08-database-design.md](docs/08-database-design.md) | PostgreSQL 3NF Schema, Mermaid ERD, indexing strategy, and table DDL specs |
 | [09-api-design.md](docs/09-api-design.md) | REST API endpoints, Pydantic schemas, and OpenAPI contracts |
 | [10-analytics-ml-plan.md](docs/10-analytics-ml-plan.md) | Analytics metrics, SQL queries, demand forecasting ML, and AI tool registry |
+| [11-ai-integration.md](docs/11-ai-integration.md) | AI feature catalog, 3-stage roadmap, and Review 1 demonstration strategy |
 
 ---
 

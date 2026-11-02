@@ -84,3 +84,123 @@ def test_stock_adjustment_invalid_batch_product(client):
     body = response.json()
     assert body["success"] is False
     assert body["error"]["code"] == "INVALID_BATCH_PRODUCT"
+
+
+def test_list_batches_low_stock_evaluates_product_total_stock(client):
+    """Test that low_stock filter on batches evaluates total product stock rather than individual batch quantities.
+    
+    A product with total stock > reorder_level (e.g., Paracetamol with 33 total units > 15 reorder level,
+    where batch BCH-2026-01 has 8 units) must NOT be returned as low stock.
+    An actual low stock product (Amoxicillin with 5 units <= 10 reorder level) must be returned.
+    """
+    response = client.get("/api/v1/inventory/batches?low_stock=true")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+
+    returned_batch_numbers = [b["batch_number"] for b in body["data"]]
+    returned_product_names = [b["product_name"] for b in body["data"]]
+
+    # Paracetamol has 33 total stock across batches > 15 reorder level: must NOT be flagged
+    assert "BCH-2026-01" not in returned_batch_numbers
+    assert "BCH-2026-02" not in returned_batch_numbers
+    assert "Paracetamol 500mg" not in returned_product_names
+
+    # Amoxicillin has 5 total stock <= 10 reorder level: MUST be flagged
+    assert "Amoxicillin 250mg" in returned_product_names
+
+
+def test_expired_batches_excluded_from_usable_stock_and_trigger_low_stock(db_session):
+    """Safety Test - Medicine A scenario:
+    Product has reorder_level = 15.
+    Batch A: 20 units, EXPIRED.
+    Batch B: 5 units, VALID.
+    
+    Expected Safety Behavior:
+    - Available dispensing stock must be 5 (NOT 25).
+    - Product MUST be flagged in low-stock alerts because 5 <= 15.
+    - Expired batch must NEVER be returned by FEFO dispensing recommendation.
+    - Expired batch MUST appear in expiry risk alerts as EXPIRED.
+    - AI tool get_product_stock_and_batches must report total_stock = 5 and expired_stock = 20.
+    """
+    import uuid
+    from datetime import date, timedelta
+    from app.models.product import Product
+    from app.models.inventory import Batch
+    from app.services import product_service, inventory_service
+    from app.services.ai import tools as ai_tools
+
+    today = date.today()
+    p_id = uuid.uuid4()
+    med_a = Product(
+        id=p_id,
+        code="MED-SAFETY-01",
+        name="Medicine Safety A",
+        category="Antibiotics",
+        unit="Strip",
+        mrp=100.0,
+        reorder_level=15,
+        is_active=True,
+    )
+    db_session.add(med_a)
+
+    # Batch A: 20 units, expired 5 days ago
+    batch_expired = Batch(
+        id=uuid.uuid4(),
+        product_id=p_id,
+        batch_number="BCH-MEDA-EXP",
+        expiry_date=today - timedelta(days=5),
+        purchase_cost=50.0,
+        quantity=20,
+        is_active=True,
+    )
+    # Batch B: 5 units, valid (expires in 90 days)
+    batch_valid = Batch(
+        id=uuid.uuid4(),
+        product_id=p_id,
+        batch_number="BCH-MEDA-VAL",
+        expiry_date=today + timedelta(days=90),
+        purchase_cost=50.0,
+        quantity=5,
+        is_active=True,
+    )
+    db_session.add_all([batch_expired, batch_valid])
+    db_session.flush()
+
+    # 1. Product details: total_stock must be 5 (only usable stock)
+    prod_data = product_service.get_product_by_id(db_session, p_id)
+    assert prod_data["total_stock"] == 5
+
+    # 2. FEFO dispensing: ONLY valid batch BCH-MEDA-VAL must be returned; BCH-MEDA-EXP must be omitted!
+    fefo_data = inventory_service.get_fefo_batches(db_session, p_id)
+    assert fefo_data["total_stock"] == 5
+    fefo_batches = fefo_data["fefo_batches"]
+    assert len(fefo_batches) == 1
+    assert fefo_batches[0]["batch_number"] == "BCH-MEDA-VAL"
+
+    # 3. Low stock alerts: Product MUST appear because usable stock 5 <= reorder_level 15
+    low_alerts = inventory_service.get_low_stock_alerts(db_session)
+    low_items = [a for a in low_alerts if a["product_name"] == "Medicine Safety A"]
+    assert len(low_items) == 1
+    assert low_items[0]["current_stock"] == 5
+    assert low_items[0]["reorder_level"] == 15
+    assert low_items[0]["shortfall"] == 10
+
+    # 4. Expiry risk alerts: BCH-MEDA-EXP must appear with urgency EXPIRED
+    exp_alerts = inventory_service.get_expiry_risk_alerts(db_session, days_threshold=60)
+    exp_batches = [b for b in exp_alerts if b["batch_number"] == "BCH-MEDA-EXP"]
+    assert len(exp_batches) == 1
+    assert exp_batches[0]["urgency"] == "EXPIRED"
+    assert exp_batches[0]["days_until_expiry"] < 0
+
+    # 5. AI Tool get_product_stock_and_batches: total_stock must be 5, expired_stock 20
+    ai_stock = ai_tools.get_product_stock_and_batches(db_session, product_name="Medicine Safety A")
+    assert ai_stock["found"] is True
+    assert ai_stock["total_stock"] == 5
+    assert ai_stock["expired_stock"] == 20
+    assert len(ai_stock["batches"]) == 1
+    assert ai_stock["batches"][0]["batch_number"] == "BCH-MEDA-VAL"
+    assert len(ai_stock["expired_batches"]) == 1
+    assert ai_stock["expired_batches"][0]["batch_number"] == "BCH-MEDA-EXP"
+
+

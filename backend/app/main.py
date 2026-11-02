@@ -8,20 +8,19 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.routes.ai import router as ai_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.inventory import router as inventory_router
 from app.api.routes.products import router as products_router
 from app.api.routes.suppliers import router as suppliers_router
 from app.core.config import settings
 from app.core.responses import AppError, app_error_handler, error_response, success_response
-from app.services.data_store import seed_sample_data
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager that runs startup and shutdown tasks."""
-    # Pre-populate sample in-memory data for development and testing
-    seed_sample_data()
+    # Data lives in PostgreSQL - seed with backend/scripts/seed_db.py before first run
     yield
 
 
@@ -49,7 +48,9 @@ app.add_middleware(
 )
 
 # Register Custom Exception Handlers for standard error envelope
-app.add_exception_handler(AppError, app_error_handler)
+@app.exception_handler(AppError)
+async def custom_app_error_handler(request: Request, exc: AppError) -> JSONResponse:
+    return await app_error_handler(request, exc)
 
 
 @app.exception_handler(RequestValidationError)
@@ -116,3 +117,4 @@ app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 app.include_router(products_router, prefix=settings.API_V1_PREFIX)
 app.include_router(inventory_router, prefix=settings.API_V1_PREFIX)
 app.include_router(suppliers_router, prefix=settings.API_V1_PREFIX)
+app.include_router(ai_router, prefix=settings.API_V1_PREFIX)

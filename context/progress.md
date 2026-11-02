@@ -14,6 +14,7 @@
 | [docs/08-database-design.md](../docs/08-database-design.md) | PostgreSQL 3NF Schema, ERD, Indexing and Tables | Finalized | 20 Sep 2026 |
 | [docs/09-api-design.md](../docs/09-api-design.md) | REST API contracts, FastAPI schemas and OpenAPI spec | Finalized | 20 Sep 2026 |
 | [docs/10-analytics-ml-plan.md](../docs/10-analytics-ml-plan.md) | Analytics metrics, SQL queries, Demand Forecasting ML | Finalized | 20 Sep 2026 |
+| [docs/11-ai-integration.md](../docs/11-ai-integration.md) | AI features catalog, staged roadmap, and Review 1 demo strategy | Finalized | 02 Nov 2026 |
 | `context/` System Guidelines | Architecture, coding standards, AI rules, UI system | Finalized | 20 Sep 2026 |
 | [`DESIGN_CONSTRAINTS.md`](../DESIGN_CONSTRAINTS.md) | Binding UI/copy/visual rules and launch checklist | Finalized | 20 Sep 2026 |
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import type { UserSummary } from "../../types/api";
 import { api } from "../../lib/api/client";
 
@@ -14,26 +14,22 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserSummary | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Restore session if present
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("pharmakon_token"));
+  const [user, setUser] = useState<UserSummary | null>(() => {
     const savedToken = localStorage.getItem("pharmakon_token");
     const savedUser = localStorage.getItem("pharmakon_user");
-
     if (savedToken && savedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        return JSON.parse(savedUser);
       } catch {
         localStorage.removeItem("pharmakon_token");
         localStorage.removeItem("pharmakon_user");
+        return null;
       }
     }
-    setIsLoading(false);
-  }, []);
+    return null;
+  });
+  const [isLoading] = useState(false);
 
   const login = async (username: string, password: string) => {
     const data = await api.auth.login(username, password);

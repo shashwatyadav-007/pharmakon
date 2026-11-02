@@ -1,40 +1,69 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from app.services import data_store
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.core.responses import AppError
+from app.models.supplier import Supplier
+
+
+def _supplier_to_dict(supplier: Supplier) -> dict:
+    """Convert a Supplier ORM row to a plain dict matching existing API shape."""
+    return {
+        "id": supplier.id,
+        "name": supplier.name,
+        "contact_person": supplier.contact_person,
+        "phone": supplier.phone,
+        "email": supplier.email,
+        "address": supplier.address,
+        "pan_vat_number": supplier.pan_vat_number,
+        "is_active": supplier.is_active,
+        "created_at": supplier.created_at,
+        "updated_at": supplier.updated_at,
+    }
 
 
 def get_all_suppliers(
+    db: Session,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[dict], int]:
     """List all suppliers with pagination."""
-    all_suppliers = list(data_store.suppliers.values())
-    total_count = len(all_suppliers)
+    count_total = db.execute(select(func.count(Supplier.id))).scalar() or 0
 
-    start = (page - 1) * limit
-    paginated = all_suppliers[start : start + limit]
+    stmt = select(Supplier).offset((page - 1) * limit).limit(limit)
+    suppliers = db.execute(stmt).scalars().all()
 
-    return paginated, total_count
+    return [_supplier_to_dict(s) for s in suppliers], int(count_total)
 
 
-def create_supplier(data: dict) -> dict:
+def create_supplier(db: Session, data: dict) -> dict:
     """Create a new supplier."""
-    supplier_id = uuid.uuid4()
     now = datetime.now(timezone.utc)
-
-    supplier = {
-        "id": supplier_id,
-        "name": data["name"],
-        "contact_person": data.get("contact_person"),
-        "phone": data["phone"],
-        "email": data.get("email"),
-        "address": data.get("address"),
-        "pan_vat_number": data.get("pan_vat_number"),
-        "is_active": True,
-        "created_at": now,
-        "updated_at": now,
-    }
-
-    data_store.suppliers[supplier_id] = supplier
-    return supplier
+    supplier = Supplier(
+        id=uuid.uuid4(),
+        name=data["name"],
+        contact_person=data.get("contact_person"),
+        phone=data["phone"],
+        email=data.get("email"),
+        address=data.get("address"),
+        pan_vat_number=data.get("pan_vat_number"),
+        is_active=True,
+        created_at=now,
+        updated_at=now,
+    )
+    db.add(supplier)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise AppError(
+            code="SUPPLIER_SAVE_ERROR",
+            message="Failed to register supplier due to a database error.",
+            status_code=400,
+        )
+    db.refresh(supplier)
+    return _supplier_to_dict(supplier)
