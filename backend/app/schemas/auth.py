@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
 class LoginRequest(BaseModel):
     username: str = Field(
         ...,
-        description="Pharmacy user username",
+        description="Pharmacy user username or email",
         json_schema_extra={"example": "admin"},
     )
     password: str = Field(
@@ -17,13 +18,16 @@ class LoginRequest(BaseModel):
 
 
 class UserSummary(BaseModel):
+    id: Optional[str] = None
     username: str
-    role: str
+    email: Optional[str] = None
+    role: str = "Pharmacy System User"
+    full_name: Optional[str] = None
 
 
 class LoginData(BaseModel):
     access_token: str
-    token_type: str
+    token_type: str = "bearer"
     expires_in: int
     user: UserSummary
 

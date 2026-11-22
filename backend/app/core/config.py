@@ -31,6 +31,14 @@ class Settings:
         )
         self.DB_ECHO: bool = os.getenv("DB_ECHO", "False").lower() in ("true", "1", "t", "yes")
 
+        # JWT Security Configuration
+        self.JWT_SECRET_KEY: str = os.getenv(
+            "JWT_SECRET_KEY",
+            "pharmakon-super-secret-jwt-key-2026-aayushman-pharmacy-nepal",
+        )
+        self.JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+        self.ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
+
         # AI Assistant Configuration
         self.AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini").lower()
         self.GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
